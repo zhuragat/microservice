@@ -1,0 +1,14 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation platform('org.testcontainers:testcontainers-bom:1.18.1') //import bom
+    testImplementation('org.testcontainers:mongodb') //no version specified
+    testImplementation('org.testcontainers:junit-jupiter')
+}
+
+test {
+    useJUnitPlatform()
+}

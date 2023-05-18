@@ -1,0 +1,5 @@
+rootProject.name = 'microservice'
+include 'product-service'
+include 'order-service'
+include 'inventory-service'
+
