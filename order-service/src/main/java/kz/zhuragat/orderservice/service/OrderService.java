@@ -1,12 +1,15 @@
 package kz.zhuragat.orderservice.service;
 
-import kz.zhuragat.orderservice.dto.*;
-import kz.zhuragat.orderservice.model.*;
-import kz.zhuragat.orderservice.repository.*;
-import lombok.*;
-import org.springframework.stereotype.*;
-import org.springframework.transaction.annotation.*;
-import org.springframework.web.reactive.function.client.*;
+import kz.zhuragat.orderservice.dto.InventoryResponse;
+import kz.zhuragat.orderservice.dto.OrderLineItemDto;
+import kz.zhuragat.orderservice.dto.OrderRequest;
+import kz.zhuragat.orderservice.model.Order;
+import kz.zhuragat.orderservice.model.OrderLineItem;
+import kz.zhuragat.orderservice.repository.OrderRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
 
@@ -23,14 +26,20 @@ public class OrderService {
         List<OrderLineItem> items = orderRequest.getOrderLineItemDtoList().stream().map(this::mapToDto).toList();
         order.setOrderLineItemList(items);
 
+        List<String> skuCodes = items.stream().map(OrderLineItem::getSkuCode)
+                .toList();
         // call Inventory Service and place order if product is in stock
-        Boolean result = webClient.get()
-                .uri("http://localhost:8082/api/inventory")
+        InventoryResponse[] inventoryResponseArray = webClient.get()
+                .uri("http://localhost:8082/api/inventory",
+                        uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
                 .retrieve()
-                .bodyToMono(Boolean.class)
+                .bodyToMono(InventoryResponse[].class)
                         .block();
 
-        if (Boolean.TRUE.equals(result)) {
+        boolean allProductsInStock = Arrays.stream(inventoryResponseArray)
+                .allMatch(InventoryResponse::isInStock);
+
+        if (Boolean.TRUE.equals(allProductsInStock)) {
             orderRepository.save(order);
         } else {
             throw new IllegalArgumentException("Product is not in stock, please try again later");

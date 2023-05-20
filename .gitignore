@@ -1,4 +1,7 @@
 .gradle
 /build/
+order-service/build
+product-service/build
+inventory-service/build
 .idea
 .iml
