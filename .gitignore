@@ -3,5 +3,7 @@
 order-service/build
 product-service/build
 inventory-service/build
+discovery-server/build
+api-gateway/build
 .idea
 .iml
